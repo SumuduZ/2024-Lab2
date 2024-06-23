@@ -1,0 +1,653 @@
+<!-- views/librarian.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Librarian Dashboard</title>
+    <script>
+        //查询书籍
+        function checkforbooks(event) {
+            event.preventDefault();
+            const form = event.target;
+            const bookQuery = form.bookQuery.value;
+            //alert(bookQuery);
+            if(!bookQuery) {
+                alert('Please enter a book ID or title.');
+                return;
+            }
+
+            fetch('/librarian/searchBook', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ bookQuery })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert(data.message);
+                    if(data.books)
+                        updateTable(data.books);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again later.');
+            });
+        }
+
+        //更新图书表格
+        function updateTable(books) {
+            const tableBody = document.getElementById('checkTableBody');
+            tableBody.innerHTML = '';
+
+            if (books.length > 0) {
+                books.forEach(book => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${book.BooKID}</td>
+                        <td>${book.Title}</td>
+                        <td>${book.Author}</td>
+                        <td>${book.Publisher}</td>
+                        <td>${book.bstatus}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } else {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="5">No books found.</td>';
+                tableBody.appendChild(row);
+            }
+        }
+
+        //查询学生
+        function searchstudent(event) {
+            event.preventDefault();
+            const form = event.target;
+            const studentID = form.studentID.value;
+            //alert(studentID);
+            if(!studentID) {
+                alert('Please enter a student ID.');
+                return;
+            }
+
+            fetch('/librarian/searchStudent', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ studentID })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert(data.message);
+                    if(data.students)
+                        updateStudentTable(data.students);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again later.');
+            });
+        }
+
+        //更新学生表格
+        function updateStudentTable(students) {
+            const tableBody = document.getElementById('studentTableBody');
+            tableBody.innerHTML = '';
+
+            if (students.length > 0) {
+                students.forEach(student => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${student.StudentID}</td>
+                        <td>${student.Name}</td>
+                        <td>${student.ContactInfo}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } else {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="3">No students found.</td>';
+                tableBody.appendChild(row);
+            }
+        }   
+
+        // 增加图书
+        function addBook(event) {
+            event.preventDefault();
+            const form = event.target;
+            const title = form.title.value;
+            const author = form.author.value;
+            const publisher = form.publisher.value;
+            const Location = form.Location.value;
+
+            if (!title || !author || !publisher || !Location) {
+                alert('Please enter all book details.');
+                return;
+            }
+
+            fetch('/librarian/addBook', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ title, author, publisher, Location })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert(data.message);
+                    form.reset(); // 清空表单
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again later.');
+            });
+        }
+
+        // 查询借阅记录
+        function searchborrowings(event) {
+            event.preventDefault();
+            const form = event.target;
+            const librarianID = form.librarianID.value;
+
+            fetch('/librarian/searchborrowings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ librarianID })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert(data.message);
+                    if (data.borrowings) {
+                        updateBorrowingTable(data.borrowings);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again later.');
+            });
+        }
+
+        // 更新借阅表格
+        function updateBorrowingTable(borrowings) {
+            const tableBody = document.getElementById('borrowingTableBody');
+            tableBody.innerHTML = '';
+
+            if (borrowings.length > 0) {
+                borrowings.forEach(borrowing => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${borrowing.BorrowingID}</td>
+                        <td>${borrowing.StudentID}</td>
+                        <td>${borrowing.BookID}</td>
+                        <td>${borrowing.BorrowDate}</td>
+                        <td>${borrowing.DueDate}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } else {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="5">No borrowings found.</td>';
+                tableBody.appendChild(row);
+            }
+        }
+
+        // 查询预约记录
+        function searchReservations(event) {
+            event.preventDefault();
+            const form = event.target;
+            const librarianID = form.librarianID.value;
+
+            fetch('/librarian/searchReservations', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ librarianID })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert(data.message);
+                    if (data.reservations) {
+                        updateReservationTable(data.reservations);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again later.');
+            });
+        }
+
+        // 更新预约表格
+        function updateReservationTable(reservations) {
+            const tableBody = document.getElementById('reservationTableBody');
+            tableBody.innerHTML = '';
+
+            if (reservations.length > 0) {
+                reservations.forEach(reservation => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${reservation.ReservationID}</td>
+                        <td>${reservation.StudentID}</td>
+                        <td>${reservation.BookID}</td>
+                        <td>${reservation.ReservationDate}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } else {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="4">No reservations found.</td>';
+                tableBody.appendChild(row);
+            }
+        }
+
+        // 查询违约记录
+        function searchOverdueBorrowings(event) {
+            event.preventDefault();
+            const form = event.target;
+            const librarianID = form.librarianID.value;
+
+            fetch('/librarian/searchOverdueBorrowings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ librarianID })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert(data.message);
+                    if (data.overdueBorrowings) {
+                        updateOverdueTable(data.overdueBorrowings);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again later.');
+            });
+        }
+
+        // 更新违约表格
+        function updateOverdueTable(overdueBorrowings) {
+            const tableBody = document.getElementById('overdueTableBody');
+            tableBody.innerHTML = '';
+
+            if (overdueBorrowings.length > 0) {
+                overdueBorrowings.forEach(overdueBorrowing => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${overdueBorrowing.OverdueID}</td>
+                        <td>${overdueBorrowing.StudentID}</td>
+                        <td>${overdueBorrowing.BookID}</td>
+                        <td>${overdueBorrowing.OverdueDays}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } else {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="4">No overdue borrowings found.</td>';
+                tableBody.appendChild(row);
+            }
+        }
+
+        // 删除图书
+        function deleteBook(event) {
+            event.preventDefault();
+            const form = event.target;
+            const bookID = form.deleteBookID.value;
+
+            if (!bookID) {
+                alert('Please enter a book ID.');
+                return;
+            }
+
+            fetch('/librarian/deleteBook', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ bookID })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert(data.message);
+                    //location.reload();  // 刷新页面以更新书籍列表
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again later.');
+            });
+        }
+    
+        function updateBook(event) {
+            event.preventDefault();
+            const form = event.target;
+            const bookID = form.updateBookID.value;
+            const author = form.updateAuthor.value;
+            const publisher = form.updatePublisher.value;
+            const location = form.updateLocation.value;
+
+            if (!author && !publisher && !location) {
+                alert('Please provide at least one field to update.');
+                return;
+            }
+
+            fetch('/librarian/updateBook', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ bookID, author, publisher, location })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert(data.message);
+                    //location.reload();  // 刷新页面以更新书籍列表
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again later.');
+            });
+        }
+
+        function searchBookCount(event) {
+            event.preventDefault();
+            const form = event.target;
+            const librarianID = form.librarianID.value;
+
+            fetch('/librarian/searchBookCount', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ librarianID })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    //alert(data.message);
+                    document.getElementById('bookCountResult').innerText = `Total Books: ${data.bookCount}`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again later.');
+            });
+
+        }
+    </script>
+</head>
+<body>
+    <h1>Welcome, <%= librarian.Name %></h1>
+    <p>ID: <%= librarian.LibrarianID %></p>
+    <p>Contact Info: <%= librarian.ContactInfo %></p>
+
+    <hr>
+    <!-- 查询书籍总数 -->
+    <h2>Books Count</h2>
+    <form onsubmit="searchBookCount(event)">
+        <input type="hidden" name="librarianID" value="<%= librarian.LibrarianID %>">
+        <button type="submit">Check Books Count</button>
+    </form>
+
+    <!-- 查询结果 -->
+    <p id="bookCountResult"></p>
+
+    <hr>
+    <!-- 查阅书籍表单 -->
+    <form onsubmit="checkforbooks(event)">
+        <input type="hidden" name="librarianID" value="<%= librarian.LibrarianID %>">
+        <label for="bookQuery">Search Book by Title or ID:</label>
+        <input type="text" id="bookQuery" name="bookQuery">
+        <button type="submit">Search for books</button>
+    </form>
+
+    <!-- 查询结果表格 -->
+    <h2>Books:</h2>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Book ID</th>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Publisher</th>
+                <th>bstatus</th>
+            </tr>
+        </thead>
+        <tbody id="checkTableBody">
+            <% if (typeof books !== 'undefined' && books.length > 0) { %>
+                    <% books.forEach(book => { %>
+                        <tr>
+                            <td><%= book.BooKID %></td>
+                            <td><%= book.Title %></td>
+                            <td><%= book.Author %></td>
+                            <td><%= book.Publisher %></td>
+                            <td><%= book.bstatus %></td>
+                        </tr>
+                    <% }) %>
+            <% } else if (typeof books !== 'undefined') { %>
+                <p>No books found.</p>
+            <% } %>
+        </tbody>
+    </table>
+
+    <hr>
+    <!-- 增加图书信息 -->
+    <h2>Add Book</h2>
+    <form onsubmit="addBook(event)">
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="title" required>
+        <label for="author">Author:</label>
+        <input type="text" id="author" name="author" required>
+        <label for="publisher">Publisher:</label>
+        <input type="text" id="publisher" name="publisher" required>
+        <label for="Location">Location:</label>
+        <input type="text" id="Location" name="Location" required>
+        <button type="submit">Add Book</button>
+    </form>
+
+    <hr>
+    <!-- 查询学生 -->
+    <h2>Search Students</h2>
+    <form onsubmit="searchstudent(event)">
+        <label for="studentID">Search Student by ID:</label>
+        <input type="text" id="studentID" name="studentID">
+        <button type="submit">Search for student</button>
+    </form>
+
+    <!-- 查询结果表格 -->
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Student ID</th>
+                <th>Name</th>
+                <th>Contact Info</th>
+            </tr>
+        </thead>
+        <tbody id="studentTableBody">
+            <% if (typeof students !== 'undefined' && students.length > 0) { %>
+                    <% students.forEach(student => { %>
+                        <tr>
+                            <td><%= student.StudentID %></td>
+                            <td><%= student.Name %></td>
+                            <td><%= student.ContactInfo %></td>
+                        </tr>
+                    <% }) %>
+            <% } else if (typeof students !== 'undefined') { %>
+                <p>No students found.</p>
+            <% } %>
+        </tbody>
+    </table>
+   
+    <hr
+    <!-- 查询借阅信息 -->
+    <h2>Borrowings</h2>
+    <form onsubmit="searchborrowings(event)">
+        <input type="hidden" name="librarianID" value="<%= librarian.LibrarianID %>">
+        <button type="submit">Check Borrowed Books</button>
+    </form>
+
+    <!-- 查询结果表格 -->
+    <table border="1">
+        <thead>
+            <tr>
+                <th>BorrowingID</th>
+                <th>StudentID</th>
+                <th>BookID</th>
+                <th>BorrowDate</th>
+                <th>DueDate</th>
+            </tr>
+        </thead>
+        <tbody id="borrowingTableBody">
+            <% if (typeof borrowings !== 'undefined' && borrowings.length > 0) { %>
+                <% borrowings.forEach(borrowing => { %>
+                    <tr>
+                        <td><%= borrowing.BorrowingID %></td>
+                        <td><%= borrowing.StudentID %></td>
+                        <td><%= borrowing.BookID %></td>
+                        <td><%= borrowing.BorrowDate %></td>
+                        <td><%= borrowing.DueDate %></td>
+                    </tr>
+                <% }) %>
+            <% } else if (typeof borrowings !== 'undefined') { %>
+                <tr>
+                    <td colspan="5">No borrowings found.</td>
+                </tr>
+            <% } %>
+        </tbody>
+    </table>
+
+    <hr
+    <!-- 查询预约信息 -->
+    <h2>Reservations</h2>
+    <form onsubmit="searchReservations(event)">
+        <input type="hidden" name="librarianID" value="<%= librarian.LibrarianID %>">
+        <button type="submit">Check Reservations</button>
+    </form>
+
+    <!-- 查询结果表格 -->
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ReservationID</th>
+                <th>StudentID</th>
+                <th>BookID</th>
+                <th>ReservationDate</th>
+            </tr>
+        </thead>
+        <tbody id="reservationTableBody">
+            <% if (typeof reservations !== 'undefined' && reservations.length > 0) { %>
+                <% reservations.forEach(reservation => { %>
+                    <tr>
+                        <td><%= reservation.ReservationID %></td>
+                        <td><%= reservation.StudentID %></td>
+                        <td><%= reservation.BookID %></td>
+                        <td><%= reservation.ReservationDate %></td>
+                    </tr>
+                <% }) %>
+            <% } else if (typeof reservations !== 'undefined') { %>
+                <tr>
+                    <td colspan="4">No reservations found.</td>
+                </tr>
+            <% } %>
+        </tbody>
+    </table>
+
+    <hr>
+    <!-- 查询违约信息 -->
+    <h2>Overdue Borrowings</h2>
+     <form onsubmit="searchOverdueBorrowings(event)">
+        <input type="hidden" name="librarianID" value="<%= librarian.LibrarianID %>">
+        <button type="submit">Check Overdue Borrowings</button>
+    </form>
+
+    <!-- 查询结果表格 -->
+    <table border="1">
+        <thead>
+            <tr>
+                <th>OverdueID</th>
+                <th>StudentID</th>
+                <th>BookID</th>
+                <th>OverdueDays</th>
+            </tr>
+        </thead>
+        <tbody id="overdueTableBody">
+            <% if (typeof overdueBorrowings !== 'undefined' && overdueBorrowings.length > 0) { %>
+                <% overdueBorrowings.forEach(overdueBorrowing => { %>
+                    <tr>
+                        <td><%= overdueBorrowing.OverdueID %></td>
+                        <td><%= overdueBorrowing.StudentID %></td>
+                        <td><%= overdueBorrowing.BookID %></td>
+                        <td><%= overdueBorrowing.OverdueDays %></td>
+                    </tr>
+                <% }) %>
+            <% } else if (typeof overdueBorrowings !== 'undefined') { %>
+                <tr>
+                    <td colspan="4">No overdue borrowings found.</td>
+                </tr>
+            <% } %>
+        </tbody>
+    </table>
+
+    <hr>
+    <!-- 删除图书 -->
+    <h2>Delete Book</h2>
+    <form onsubmit="deleteBook(event)">
+        <label for="deleteBookID">Enter Book ID to Delete:</label>
+        <input type="text" id="deleteBookID" name="deleteBookID">
+        <button type="submit">Delete Book</button>
+    </form>
+
+    <hr>
+    <!-- 修改图书信息 -->
+    <h2>update book info</h2>
+    <form onsubmit="updateBook(event)">
+        <label for="updateBookID">Book ID:</label>
+        <input type="text" id="updateBookID" name="updateBookID">
+        <label for="updateAuthor">Author:</label>
+        <input type="text" id="updateAuthor" name="updateAuthor">
+        <label for="updatePublisher">Publisher:</label>
+        <input type="text" id="updatePublisher" name="updatePublisher">
+        <label for="updateLocation">Location:</label>
+        <input type="text" id="updateLocation" name="updateLocation">
+        <button type="submit">Update Book</button>
+    </form>
+</body>
+</html>

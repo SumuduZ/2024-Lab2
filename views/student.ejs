@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard</title>
+    <script>
+        // 处理预约表单提交
+        function handleReserveBook(event) {
+            event.preventDefault();
+            const form = event.target;
+            const studentID = form.studentID.value;
+            const bookID = form.bookID.value;
+            const bookTitle = form.bookTitle.value;
+            const reservationDate = form.reservationDate.value;
+            
+            //alert('studentID: ' + studentID + '\nbookID: ' + bookID + '\nbookTitle: ' + bookTitle + '\nreservationDate: ' + reservationDate);
+            if (!bookID && !bookTitle) {
+                alert('Please provide either a book ID or book title.');
+                return;
+            }
+
+            if (!reservationDate) {
+                alert('Please provide a reservation date.');
+                return;
+            }
+
+            fetch('/student/reserveBook', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ studentID, bookID, bookTitle, reservationDate })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert(data.message);
+                    //if (data.reservations) {
+                    //    updateReservationsTable(data.reservations);
+                    //}
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again later.');
+            });
+        }
+
+        // 处理取消预约表单提交
+        function cancelReservation(event) {
+            event.preventDefault();
+            const form = event.target;
+            const studentID = form.studentID.value;
+            const reservationID = form.reservationID.value;
+
+            fetch('/student/cancelReservation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ studentID, reservationID })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again later.');
+            });
+        }
+
+        // 处理查询预约信息表单提交
+        function searchReservations(event) {
+            event.preventDefault();
+            const form = event.target;
+            const studentID = form.studentID.value;
+
+            fetch('/student/searchReservations', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ studentID })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert(data.message);
+                    if (data.reservations) {
+                        updateReservationsTable(data.reservations);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again later.');
+            });
+        }
+
+        // 更新预约信息表格
+        function updateReservationsTable(reservations) {
+            const tableBody = document.getElementById('reservationsTableBody');
+            tableBody.innerHTML = '';
+            reservations.forEach(reservation => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${reservation.ReservationID}</td>
+                    <td>${reservation.BookID}</td>
+                    <td>${reservation.ReservationDate}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+    
+        //处理借阅表单提交
+        function handleBorrowBook(event){
+            event.preventDefault();
+            const form = event.target;
+            const studentID = form.studentID.value;
+            const bookID = form.bookID.value;
+
+            if (!bookID) {
+                alert('Please provide a book ID.');
+                return;
+            }
+
+            fetch('/student/borrowBook', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ studentID, bookID })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert(data.message);
+                    //if (data.borrowings) {
+                    //    updateBorrowingsTable(data.borrowings);
+                    //}
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again later.');
+            });
+        }
+
+        //处理还书表单提交
+        function returnBook(event){
+            event.preventDefault();
+            const form = event.target;
+            const studentID = form.studentID.value;
+            const borrowingID = form.borrowingID.value;
+
+            fetch('/student/returnBook', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ studentID, borrowingID })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert(data.message);
+                    //if (data.borrowings) {
+                    //    updateBorrowingsTable(data.borrowings);
+                    //}
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again later.');
+            });
+        }
+        
+        //处理借阅信息查询表单提交
+        function checkBorrowings(event){
+            event.preventDefault();
+            const form = event.target;
+            const studentID = form.studentID.value;
+
+            fetch('/student/checkBorrowings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ studentID })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert(data.message);
+                    if (data.borrowings) {
+                        updateBorrowingsTable(data.borrowings);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again later.');
+            });
+        }
+        // 更新借阅信息表格
+        function updateBorrowingsTable(borrowings) {
+            const tableBody = document.getElementById('borrowingsTableBody');
+            tableBody.innerHTML = '';
+            borrowings.forEach(borrowing => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${borrowing.BorrowingID}</td>
+                    <td>${borrowing.BookID}</td>
+                    <td>${borrowing.BorrowDate}</td>
+                    <td>${borrowing.DueDate}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        //处理违约查询表单提交
+        function checkOverdue(event){
+            event.preventDefault();
+            const form = event.target;
+            const studentID = form.studentID.value;
+
+            fetch('/student/checkOverdue', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ studentID })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert(data.message);
+                    if (data.overdues) {
+                        updateOverdueTable(data.overdues);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again later.');
+            });
+        }
+
+        // 更新违约信息表格
+        function updateOverdueTable(overdues) {
+            const tableBody = document.getElementById('overdueTableBody');
+            tableBody.innerHTML = '';
+            overdues.forEach(overdue => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${overdue.OverdueID}</td>
+                    <td>${overdue.BookID}</td>
+                    <td>${overdue.OverdueDays}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+        
+    </script>
+</head>
+<body>
+    <h1>Welcome, <%= student.Name %></h1>
+    <div>
+        <img src="/<%= student.AvatarPath %>" alt="Avatar" style="width: 150px; height: 150px; border-radius: 50%;">
+    </div>
+    <p>ID: <%= student.StudentID %></p>
+    <p>Contact Info: <%= student.ContactInfo %></p>
+
+    <hr>
+    <!-- 查阅书籍表单 -->
+    <h2>Search Book</h2>
+    <form action="/student/searchBook" method="post">
+        <input type="hidden" name="studentID" value="<%= student.StudentID %>">
+        <label for="bookQuery">Search Book by Title or ID:</label>
+        <input type="text" id="bookQuery" name="bookQuery">
+        <button type="submit">Search</button>
+    </form>
+
+    <!-- 查询结果显示表格 -->
+    <% if (typeof books !== 'undefined' && books.length > 0) { %>
+        <h2>Search Results:</h2>
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Book ID</th>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Publisher</th>
+                    <th>bstatus</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% books.forEach(book => { %>
+                    <tr>
+                        <td><%= book.BooKID %></td>
+                        <td><%= book.Title %></td>
+                        <td><%= book.Author %></td>
+                        <td><%= book.Publisher %></td>
+                        <td><%= book.bstatus %></td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    <% } else if (typeof books !== 'undefined') { %>
+        <p>No books found.</p>
+    <% } %>
+
+    <hr>
+    <h2>Reserve Books</h2>
+    <!-- 预约书籍表单 -->
+    <form onsubmit="handleReserveBook(event)">
+        <input type="hidden" name="studentID" value="<%= student.StudentID %>">
+        <label for="bookID">Book ID:</label>
+        <input type="text" id="bookID" name="bookID">
+        <label for="bookTitle">Book Title:</label>
+        <input type="text" id="bookTitle" name="bookTitle">
+        <label for="reservationDate">Reservation Date:</label>
+        <input type="date" id="reservationDate" name="reservationDate">
+        <button type="submit">Reserve</button>
+    </form>
+
+    <h2>Cancel Reservation</h2>
+    <!-- 取消预约 -->
+    <form onsubmit="cancelReservation(event)">
+        <input type="hidden" name="studentID" value="<%= student.StudentID %>">
+        <label for="reservationID">Reservation ID:</label>
+        <input type="text" id="reservationID" name="reservationID">
+        <button type="submit">Cancel Reservation</button>
+    </form>
+
+    <hr>
+    <!-- 查询所有预约信息 -->
+    <form onsubmit="searchReservations(event)">
+        <input type="hidden" name="studentID" value="<%= student.StudentID %>">
+        <button type="submit">Search Reservation</button>
+    </form>
+
+    <!-- 预约信息表格 -->
+    <h2>Your Reservations:</h2>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Reservation ID</th>
+                <th>Book ID</th>
+                <th>Reservation Date</th>
+            </tr>
+        </thead>
+        <tbody id="reservationsTableBody">
+            <% if (typeof reservations !== 'undefined') { %>
+                <% reservations.forEach(reservation => { %>
+                    <tr>
+                        <td><%= reservation.ReservationID %></td>
+                        <td><%= reservation.BookID %></td>
+                        <td><%= reservation.ReservationDate %></td>
+                    </tr>
+                <% }) %>
+            <% } %>
+        </tbody>
+    </table>
+    
+    <hr>
+    <h2>Borrow Books</h2>
+    <!-- 借阅书籍表单 -->
+    <form onsubmit="handleBorrowBook(event)">
+        <input type="hidden" name="studentID" value="<%= student.StudentID %>">
+        <label for="bookID">Book ID:</label>
+        <input type="text" id="bookID" name="bookID">
+        <button type="submit">Borrow</button>
+    </form>
+
+    <h2>Return Books</h2>
+    <!-- 还书表单 -->
+    <form onsubmit="returnBook(event)">
+        <input type="hidden" name="studentID" value="<%= student.StudentID %>">
+        <label for="borrowingID">Borrowing ID:</label>
+        <input type="text" id="borrowingID" name="borrowingID">
+        <button type="submit">Return</button>
+    </form>
+
+    <h2>Check Borrowings</h2>
+    <!-- 查询借阅信息 -->
+    <form onsubmit="checkBorrowings(event)">
+        <input type="hidden" name="studentID" value="<%= student.StudentID %>">
+        <button type="submit">Search Borrowings</button>
+    </form>
+
+    <!-- 借阅信息表格 -->
+    <h2>Your Borrowings:</h2>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Borrowing ID</th>
+                <th>Book ID</th>
+                <th>Borrowing Date</th>
+                <th>Due Date</th>
+            </tr>
+        </thead>
+        <tbody id="borrowingsTableBody">
+            <% if (typeof borrowings !== 'undefined') { %>
+                <% borrowings.forEach(borrowing => { %>
+                    <tr>
+                        <td><%= borrowing.BorrowingID %></td>
+                        <td><%= borrowing.BookID %></td>
+                        <td><%= borrowing.BorrowingDate %></td>
+                        <td><%= borrowing.DuwDate %></td>
+                    </tr>
+                <% }) %>
+            <% } %>
+        </tbody>
+    </table>
+
+    <hr>
+    <!-- 违约查询按键 -->
+    <form onsubmit="checkOverdue(event)">
+        <input type="hidden" name="studentID" value="<%= student.StudentID %>">
+        <button type="submit">违约查询</button>
+    </form>
+
+    <!-- 违约信息表格 -->
+    <h2>Your Overdue:</h2>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Overdue ID</th>
+                <th>Book ID</th>
+                <th>Overdue Date</th>
+            </tr>
+        </thead>
+        <tbody id="overdueTableBody">
+            <% if (typeof overdues !== 'undefined') { %>
+                <% overdues.forEach(overdue => { %>
+                    <tr>
+                        <td><%= overdue.OverdueID %></td>
+                        <td><%= overdue.BookID %></td>
+                        <td><%= overdue.OverdueDays %></td>
+                    </tr>
+                <% }) %>
+            <% } %>
+        </tbody>
+    </table>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!-- views/login.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <script>
+        function handleLogin(event) {
+            event.preventDefault();
+
+            const userType = document.getElementById('userType').value;
+            const id = document.getElementById('id').value;
+            const name = document.getElementById('name').value;
+
+            fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ userType, id, name })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.userType === 'student') {
+                        window.location.href = '/student/' + data.id;
+                    } else if (data.userType === 'librarian') {
+                        window.location.href = '/librarian/' + data.id;
+                    }
+                } else {
+                    alert(data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again later.');
+            });
+        }
+    </script>
+</head>
+<body>
+    <h1>Login</h1>
+    
+    <form onsubmit="handleLogin(event)">
+        <label for="userType">User Type:</label>
+        <select id="userType" name="userType" required>
+            <option value="student">Student</option>
+            <option value="librarian">Librarian</option>
+        </select>
+        
+        <label for="id">ID:</label>
+        <input type="text" id="id" name="id" required>
+        
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required>
+        
+        <button type="submit">Login</button>
+    </form>
+</body>
+</html>
